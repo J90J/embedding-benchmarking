@@ -1,1 +1,1 @@
-[Paste your Streamlit Cloud URL here]
+https://mini-project-1-c99pgkfdngm9bkgjm93elc.streamlit.app/
