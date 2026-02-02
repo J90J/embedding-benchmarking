@@ -88,15 +88,27 @@ def load_sentence_transformer_model(model_name):
     return sentenceTransformer
 
 
-@st.cache_resource()
+# @st.cache_resource()
 def load_openai_client():
     """
     Load OpenAI client (cached to avoid multiple initializations)
     Make sure to set OPENAI_API_KEY environment variable
     """
     api_key = os.getenv("OPENAI_API_KEY")
+    
+    # Check st.secrets if not in env
     if not api_key:
-        st.warning("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
+        try:
+            api_key = st.secrets["OPENAI_API_KEY"]
+        except:
+            pass
+            
+    # Check session state (sidebar input)
+    if not api_key and "openai_api_key_input" in st.session_state:
+        api_key = st.session_state["openai_api_key_input"]
+
+    if not api_key:
+        st.warning("OpenAI API key not found. Please set OPENAI_API_KEY environment variable or enter it in the sidebar.")
         return None
     return OpenAI(api_key=api_key)
 
@@ -409,10 +421,25 @@ if __name__ == "__main__":
     - **OpenAI Small**: text-embedding-3-small (1536d)
     - **OpenAI Large**: text-embedding-3-large (3072d)
     
-    [GloVe Paper](http://nlp.stanford.edu/data/glove.twitter.27B.zip) | 
     [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings)
     """
     )
+    
+    # Add API Key input if not found in env
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        try:
+            api_key = st.secrets["OPENAI_API_KEY"]
+        except:
+            pass
+            
+    if not api_key:
+        st.sidebar.text_input(
+            "OpenAI API Key",
+            type="password",
+            key="openai_api_key_input",
+            help="Enter your OpenAI API key here if not set in environment variables."
+        )
 
     model_type = st.sidebar.selectbox("Choose the model", ("25d", "50d", "100d"), index=1)
 
